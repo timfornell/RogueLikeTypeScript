@@ -53,4 +53,5 @@ inside the folder <code>js-rogue-tutorial</code>. If the following text is visib
 ```
 the server is successfully started and can be accessed in a browser by visiting the adress provided.
 
-Now, the first lines of code can be found in the file [main.ts](js-rogue-tutorial\src\main.ts).
+Now, the first lines of code can be found in the file [main.ts](js-rogue-tutorial\src\main.ts) if looking at
+[this branch](https://github.com/timfornell/RogueLikeTypeScript/tree/Tutorial_Part0).
