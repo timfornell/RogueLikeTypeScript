@@ -73,5 +73,9 @@ declare global {
 After this, the constructor of the <code>Engine</code> class is modified to include the setup that was previously done
 in 'DOMContentLoadeed'. That concludes the refactoring. Now the server should display the message 'Hello World!' again.
 
+### Adding the player character
+A new class is created <code>Player</code> that will be in charge of handling everything related to the player (except
+for drawing it on the displa). At the moment, it it very minimalistic and only contains the *x* and *y* position.
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
