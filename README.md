@@ -56,3 +56,105 @@ the server is successfully started and can be accessed in a browser by visiting 
 Now, the first lines of code can be found in the file
 [main.ts]([js-rogue-tutorial\src\main.ts](https://github.com/timfornell/RogueLikeTypeScript/blob/Tutorial_Part0/js-rogue-tutorial/src/main.ts))
 on the branch <code>Tutorial_Part0</code>.
+
+## Part 1 - Refactoring and drawing player character
+### Refactoring
+Next steps in the guide are some simple refactorings of the code. The refactoring is done in order to 'hide' the engine
+details from the event listener (DCMContentLoaded). To achieve this, the interface <code>Window</code> needs to be extended
+to include an instance of the <code>Engine</code> class. This is done by utilizing the keyword <code>declare global</code>:
+```
+declare global {
+  interace Window {
+    // <Variable name>: <Type>
+    engine: Engine;
+  }
+}
+```
+After this, the constructor of the <code>Engine</code> class is modified to include the setup that was previously done
+in 'DOMContentLoadeed'. That concludes the refactoring. Now the server should display the message 'Hello World!' again.
+
+### Adding the player character
+A new class is created <code>Player</code> that will be in charge of handling everything related to the player (except
+for drawing it on the displa). At the moment, it it very minimalistic and only contains the *x* and *y* position.
+```
+class Player {
+  playerX: number;
+  playerY: number;
+
+  constructor(displayWidht: number, displayHeight: number) {
+    this.playerX = displayWidht / 2;
+    this.playerY = displayHeight / 2;
+  }
+}
+```
+An instance of this class is added to the <code>Engine</code> class for easy access.
+
+### Adding input handling
+To allow the character to move around on the screen inputs from the keyboard needs to be handled. To prepare for this,
+a new file *input-handler.ts* is created. This file will define a class called <code>MovementAction</code> and a function
+called <code>handleInput</code>. The function is intended to be called every time a key press should be handled, it
+indexes an array <code><MOVE_KEYS</code> with the provided key to see if it is a valid key press.
+```
+const MOVE_KEYS: MovementMap = {
+   ArrowUp: new MovementAction(0, -1),
+   ArrowDown: new MovementAction(0, 1),
+   ArrowLeft: new MovementAction(-1, 0),
+   ArrowRight: new MovementAction(1, 0),
+};
+
+handleInput(event: KeyboardEvent): Action {
+   return MOVE_KEYS[event.key];
+}
+```
+The array <code>MOVE_KEYS</code> contains elements of the <code>MovementAction</code> class. Which at the moment only
+handles movement actions (hence the name). It contains two variables <code>dx, dy</code> that indicates in what direction
+the player should move for the given key press.
+```
+export class MovementAction implements Action {
+   dx: number;
+   dy: number;
+
+   constructor(dx: number, dy:number) {
+      this.dx = dx;
+      this.dy = dy;
+   }
+}
+```
+One important note here is that it *implements* the <code>Action</code> interface. This basically meant that any functions
+or variables declared by that interface has to be implemented in the class. At the moment the interface is empty, so it
+doesn't actually impact anything though.
+
+### Moving the player character
+With all help functions and interfaces defined the next step is to make the player actually move. This is done by firstly
+importing the function <code>handleInput</code> and the class <code>MovementAction</code> with
+```
+import { handleInput, MovementAction } from './input-handler';
+```
+Secondly, the <code>Player</code> class is updated with a function, <code>move</code>, that that updates the x and y position.
+Lastly, the <code>Engine</code> class is updated to listen after key events:
+```
+// Added in the constructor
+window.addEventListener('keydown', (event) => {
+      this.update(event);
+    });
+```
+and with a function to update the player position and to update the display:
+```
+update(event: KeyboardEvent) {
+    // Clear screen
+    this.display.clear();
+
+    // Check if key event is a valid action
+    const action = handleInput(event);
+
+    if (action instanceof MovementAction) {
+      this.player.move(action.dx, action.dy);
+    }
+
+    // Draw player at new position
+    this.render();
+  }
+```
+
+## Graphical assets
+https://kenney.nl/assets/tiny-dungeon
