@@ -1,4 +1,5 @@
 import * as ROT from 'rot-js';
+import { handleInput, MovementAction } from './input-handler';
 
 class Player {
   playerX: number;
@@ -7,6 +8,11 @@ class Player {
   constructor(displayWidht: number, displayHeight: number) {
     this.playerX = displayWidht / 2;
     this.playerY = displayHeight / 2;
+  }
+
+  move(dx: number, dy: number) {
+    this.playerX += dx;
+    this.playerY += dy;
   }
 }
 
@@ -29,6 +35,10 @@ class Engine {
     const container = this.display.getContainer()!;
     document.body.appendChild(container);
 
+    window.addEventListener('keydown', (event) => {
+      this.update(event);
+    });
+
     this.render();
   }
 
@@ -36,6 +46,21 @@ class Engine {
     const x = this.player.playerX;
     const y = this.player.playerY;
     this.display.draw(x, y, "@", '#fff', '#000');
+  }
+
+  update(event: KeyboardEvent) {
+    // Clear screen
+    this.display.clear();
+
+    // Check if key event is a valid action
+    const action = handleInput(event);
+
+    if (action instanceof MovementAction) {
+      this.player.move(action.dx, action.dy);
+    }
+
+    // Draw player at new position
+    this.render();
   }
 }
 
@@ -49,3 +74,4 @@ declare global {
 window.addEventListener('DOMContentLoaded', () => {
   window.engine = new Engine();
 });
+
