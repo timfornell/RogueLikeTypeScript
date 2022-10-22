@@ -4,8 +4,12 @@ import { handleInput, MovementAction } from './input-handler';
 class Player {
   playerX: number;
   playerY: number;
+  width: number;
+  height: number;
 
   constructor(displayWidht: number, displayHeight: number) {
+    this.width = displayWidht;
+    this.height = displayHeight;
     this.playerX = displayWidht / 2;
     this.playerY = displayHeight / 2;
   }
@@ -13,6 +17,26 @@ class Player {
   move(dx: number, dy: number) {
     this.playerX += dx;
     this.playerY += dy;
+
+    this.clampPositionToDisplay();
+  }
+
+  clampPositionToDisplay() {
+    if (this.playerX < 0) {
+      this.playerX = 0;
+    }
+
+    if (this.playerX >= this.width) {
+      this.playerX = this.width - 1;
+    }
+
+    if (this.playerY < 0) {
+      this.playerY = 0;
+    }
+
+    if (this.playerY >= this.height) {
+      this.playerY = this.height - 1;
+    }
   }
 }
 
