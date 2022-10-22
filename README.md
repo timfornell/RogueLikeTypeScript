@@ -56,3 +56,22 @@ the server is successfully started and can be accessed in a browser by visiting 
 Now, the first lines of code can be found in the file
 [main.ts]([js-rogue-tutorial\src\main.ts](https://github.com/timfornell/RogueLikeTypeScript/blob/Tutorial_Part0/js-rogue-tutorial/src/main.ts))
 on the branch <code>Tutorial_Part0</code>.
+
+## Part 1 - Refactoring and drawing player character
+### Refactoring
+Next steps in the guide are some simple refactorings of the code. The refactoring is done in order to 'hide' the engine
+details from the event listener (DCMContentLoaded). To achieve this, the interface <code>Window</code> needs to be extended
+to include an instance of the <code>Engine</code> class. This is done by utilizing the keyword <code>declare global</code>:
+```
+declare global {
+  interace Window {
+    // <Variable name>: <Type>
+    engine: Engine;
+  }
+}
+```
+After this, the constructor of the <code>Engine</code> class is modified to include the setup that was previously done
+in 'DOMContentLoadeed'. That concludes the refactoring. Now the server should display the message 'Hello World!' again.
+
+## Graphical assets
+https://kenney.nl/assets/tiny-dungeon

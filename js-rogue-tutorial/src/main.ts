@@ -7,7 +7,16 @@ class Engine {
   display: ROT.Display;
 
   constructor() {
-    this.display = new ROT.Display({width: Engine.WIDTH, height: Engine.HEIGHT});
+    this.display = new ROT.Display({
+      width: Engine.WIDTH,
+      height: Engine.HEIGHT
+    });
+
+    // '!' tells the compiler that the object returned by 'getContainer' is never null
+    const container = this.display.getContainer()!;
+    document.body.appendChild(container);
+
+    this.render();
   }
 
   render() {
@@ -17,12 +26,13 @@ class Engine {
   }
 }
 
+declare global {
+  // Extend the 'Window' class with a variable called 'engine'
+  interface Window {
+    engine: Engine;
+  }
+}
+
 window.addEventListener('DOMContentLoaded', () => {
-  const engine = new Engine();
-
-  const container = engine.display.getContainer()!;
-
-  document.body.appendChild(container);
-
-  engine.render();
-})
+  window.engine = new Engine();
+});
