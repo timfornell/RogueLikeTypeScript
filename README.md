@@ -32,7 +32,7 @@ from a command prompt to install TypeScript. There are two other packages that n
 There is a short explanation about what they are in Nicks tutorial. But in short, [**ViteJs**](https://vitejs.dev/) is a "ridiculously fast" (according to Nick) dev server and [**ROT**](https://ondras.github.io/rot.js/hp/) is a roguelike toolkit.
 
 ROT is installed by running <code>npm install rot-js</code> and the development server is set up by running:
-```
+```Shell
 npm create vite@latest js-rogue-tutorial
 # Choosing 'Vanilla' and 'TypeScript' in the prompts that show up
 cd js-rogue-tutorial
@@ -41,11 +41,11 @@ npm install
 
 ### First lines of code
 After the installation is complete the development server is started up running
-```
+```Shell
 npm run dev
 ```
 inside the folder <code>js-rogue-tutorial</code>. If the following text is visible in the terminal
-```
+```Shell
   VITE v3.1.8  ready in 202 ms
 
   ➜  Local:   http://127.0.0.1:5173/
@@ -62,7 +62,7 @@ on the branch <code>Tutorial_Part0</code>.
 Next steps in the guide are some simple refactorings of the code. The refactoring is done in order to 'hide' the engine
 details from the event listener (DCMContentLoaded). To achieve this, the interface <code>Window</code> needs to be extended
 to include an instance of the <code>Engine</code> class. This is done by utilizing the keyword <code>declare global</code>:
-```
+```TypeScript
 declare global {
   interace Window {
     // <Variable name>: <Type>
@@ -76,7 +76,7 @@ in 'DOMContentLoadeed'. That concludes the refactoring. Now the server should di
 ### Adding the player character
 A new class is created <code>Player</code> that will be in charge of handling everything related to the player (except
 for drawing it on the displa). At the moment, it it very minimalistic and only contains the *x* and *y* position.
-```
+```TypeScript
 class Player {
   playerX: number;
   playerY: number;
@@ -94,7 +94,7 @@ To allow the character to move around on the screen inputs from the keyboard nee
 a new file *input-handler.ts* is created. This file will define a class called <code>MovementAction</code> and a function
 called <code>handleInput</code>. The function is intended to be called every time a key press should be handled, it
 indexes an array <code><MOVE_KEYS</code> with the provided key to see if it is a valid key press.
-```
+```TypeScript
 const MOVE_KEYS: MovementMap = {
    ArrowUp: new MovementAction(0, -1),
    ArrowDown: new MovementAction(0, 1),
@@ -109,7 +109,7 @@ handleInput(event: KeyboardEvent): Action {
 The array <code>MOVE_KEYS</code> contains elements of the <code>MovementAction</code> class. Which at the moment only
 handles movement actions (hence the name). It contains two variables <code>dx, dy</code> that indicates in what direction
 the player should move for the given key press.
-```
+```TypeScript
 export class MovementAction implements Action {
    dx: number;
    dy: number;
@@ -127,33 +127,33 @@ doesn't actually impact anything though.
 ### Moving the player character
 With all help functions and interfaces defined the next step is to make the player actually move. This is done by firstly
 importing the function <code>handleInput</code> and the class <code>MovementAction</code> with
-```
+```TypeScript
 import { handleInput, MovementAction } from './input-handler';
 ```
 Secondly, the <code>Player</code> class is updated with a function, <code>move</code>, that that updates the x and y position.
 Lastly, the <code>Engine</code> class is updated to listen after key events:
-```
+```TypeScript
 // Added in the constructor
 window.addEventListener('keydown', (event) => {
-      this.update(event);
-    });
+  this.update(event);
+});
 ```
 and with a function to update the player position and to update the display:
-```
+```TypeScript
 update(event: KeyboardEvent) {
-    // Clear screen
-    this.display.clear();
+  // Clear screen
+  this.display.clear();
 
-    // Check if key event is a valid action
-    const action = handleInput(event);
+  // Check if key event is a valid action
+  const action = handleInput(event);
 
-    if (action instanceof MovementAction) {
-      this.player.move(action.dx, action.dy);
-    }
-
-    // Draw player at new position
-    this.render();
+  if (action instanceof MovementAction) {
+    this.player.move(action.dx, action.dy);
   }
+
+  // Draw player at new position
+  this.render();
+}
 ```
 
 ## Graphical assets
