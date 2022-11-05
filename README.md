@@ -220,5 +220,25 @@ Now, this is a bit confusing becase the input <code>entities</code> contains a r
 <code>player</code> variable is referring to. This is, again, useful for when drawing all entities on the canvas and to
 make it easier to access the player character in the future.
 
+### Creating an environment
+Now that it is possible to have entities (npcs) and a player on the canvas, the next step is to create some sort of map
+that adds some more variety to the game. In order to do this, the file *tile-types.ts* is created. It contains the two
+following definitions:
+```TypeScript
+export interface Graphic {
+   char: string; // Display character
+   fg: string; // Foreground color
+   bg: string; // Background color
+}
+
+export interface Tile {
+   walkable: boolean;
+   transparent: boolean; // If see-through
+   dark: Graphic; // What to draw if not in field of view
+}
+```
+The interface <code>Tile</code> is what will be used to create the different objects for the map. At the moment, there
+are only two different tiles to start with, the <code>FLOOR_TILE</code> and the <code>WALL_TILE</code>. The first one
+is both walkable and transparent, while the second is neither.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
