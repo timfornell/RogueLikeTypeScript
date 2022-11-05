@@ -240,5 +240,32 @@ export interface Tile {
 The interface <code>Tile</code> is what will be used to create the different objects for the map. At the moment, there
 are only two different tiles to start with, the <code>FLOOR_TILE</code> and the <code>WALL_TILE</code>. The first one
 is both walkable and transparent, while the second is neither.
+
+Next step is to add the actual map. To do this, a new file *game-maps.ts* is created. It contains a class
+<code>GameMap</code> which contains the following parameters and functions:
+```TypeScript
+export class GameMap {
+   width: number;
+   height: number;
+   display: Display;
+
+   tiles: Tile[][]; // First 'array' contains y coordinates and second 'array' contains x coordinates
+
+   constructor(width: number, height: number, display: Display) {
+      // Initialize the game map
+      // Iterate through this.tiles and either create a floor or wall tile for each coordinate
+   }
+
+   isInBounds(x: number, y: number) {
+      // Check if x and y coordinates are inside display borders
+   }
+
+   render() {
+      // Iterate through all objects in this.tiles and call this.display.draw
+   }
+}
+```
+As can be seen in the constructor, the game map is created there. At the moment it is very simple and only contains some
+walls at predefined positions and floor in every other place.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

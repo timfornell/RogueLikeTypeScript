@@ -1,56 +1,68 @@
 import * as ROT from 'rot-js';
 import { handleInput, MovementAction } from './input-handler';
 import { Entity, Player } from './entity-classes';
+import { GameMap } from './game-map';
 
 export class Engine {
-  public static readonly WIDTH = 80;
-  public static readonly HEIGHT = 50;
+   public static readonly MAP_WIDTH = 80;
+   public static readonly MAP_HEIGHT = 50;
 
-  display: ROT.Display;
+   gameMap: GameMap;
+   display: ROT.Display;
 
-  player: Player;
-  entities: Entity[]
+   player: Player;
+   entities: Entity[]
 
-  constructor(entities: Entity[], player: Player) {
-    this.entities = entities;
-    this.player = player;
+   constructor(entities: Entity[], player: Player) {
+      this.display = new ROT.Display({
+         width: Engine.MAP_WIDTH,
+         height: Engine.MAP_HEIGHT,
+         forceSquareRatio: true
+      });
 
-    this.display = new ROT.Display({
-      width: Engine.WIDTH,
-      height: Engine.HEIGHT,
-      forceSquareRatio: true
-    });
+      this.entities = entities;
+      this.player = player;
 
-    // '!' tells the compiler that the object returned by 'getContainer' is never null
-    const container = this.display.getContainer()!;
-    document.body.appendChild(container);
+      this.gameMap = new GameMap(Engine.MAP_WIDTH, Engine.MAP_HEIGHT, this.display);
 
-    window.addEventListener('keydown', (event) => {
-      this.update(event);
-    });
 
-    this.render();
+      // '!' tells the compiler that the object returned by 'getContainer' is never null
+      const container = this.display.getContainer()!;
+      document.body.appendChild(container);
 
-  }
+      window.addEventListener('keydown', (event) => {
+         this.update(event);
+      });
 
-  render() {
-    for (var entity of this.entities) {
-      this.display.draw(entity.x, entity.y, entity.char, entity.fg, entity.bg);
-    }
-  }
+      this.render();
 
-  update(event: KeyboardEvent) {
-    // Clear screen
-    this.display.clear();
+   }
 
-    // Check if key event is a valid action
-    const action = handleInput(event);
+   render() {
+      this.gameMap.render();
 
-    if (action instanceof MovementAction) {
-      this.player.move(action.dx, action.dy);
-    }
+      for (var entity of this.entities) {
+         this.display.draw(entity.x, entity.y, entity.char, entity.fg, entity.bg);
+      }
+   }
 
-    // Update canvas
-    this.render();
-  }
+   update(event: KeyboardEvent) {
+      // Clear screen
+      this.display.clear();
+
+      // Check if key event is a valid action
+      const action = handleInput(event);
+
+      if (action instanceof MovementAction) {
+         const newX = this.player.x + action.dx;
+         const newY = this.player.y + action.dy;
+
+         if (this.gameMap.tiles[newY][newX].walkable) {
+            this.player.move(action.dx, action.dy);
+         }
+      }
+
+      // Update canvas
+      this.render();
+   }
 }
