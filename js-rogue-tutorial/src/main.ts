@@ -1,44 +1,6 @@
 import * as ROT from 'rot-js';
 import { handleInput, MovementAction } from './input-handler';
-
-class Player {
-  playerX: number;
-  playerY: number;
-  width: number;
-  height: number;
-
-  constructor(displayWidht: number, displayHeight: number) {
-    this.width = displayWidht;
-    this.height = displayHeight;
-    this.playerX = displayWidht / 2;
-    this.playerY = displayHeight / 2;
-  }
-
-  move(dx: number, dy: number) {
-    this.playerX += dx;
-    this.playerY += dy;
-
-    this.clampPositionToDisplay();
-  }
-
-  clampPositionToDisplay() {
-    if (this.playerX < 0) {
-      this.playerX = 0;
-    }
-
-    if (this.playerX >= this.width) {
-      this.playerX = this.width - 1;
-    }
-
-    if (this.playerY < 0) {
-      this.playerY = 0;
-    }
-
-    if (this.playerY >= this.height) {
-      this.playerY = this.height - 1;
-    }
-  }
-}
+import { Entity, Player } from './entity-classes';
 
 class Engine {
   public static readonly WIDTH = 80;
@@ -46,6 +8,8 @@ class Engine {
 
   display: ROT.Display;
   player: Player;
+  npc: Entity;
+  entities: Entity[]
 
   constructor() {
     this.display = new ROT.Display({
@@ -53,7 +17,9 @@ class Engine {
       height: Engine.HEIGHT
     });
 
-    this.player = new Player(Engine.WIDTH, Engine.HEIGHT);
+    this.player = new Player(Engine.WIDTH / 2, Engine.HEIGHT / 2);
+    this.npc = new Entity(Engine.WIDTH / 2 - 5, Engine.HEIGHT / 2, '#', '#fff', '#000');
+    this.entities = [this.player, this.npc];
 
     // '!' tells the compiler that the object returned by 'getContainer' is never null
     const container = this.display.getContainer()!;
@@ -67,9 +33,9 @@ class Engine {
   }
 
   render() {
-    const x = this.player.playerX;
-    const y = this.player.playerY;
-    this.display.draw(x, y, "@", '#fff', '#000');
+    for (var entity of this.entities) {
+      this.display.draw(entity.x, entity.y, entity.char, entity.fg, entity.bg);
+    }
   }
 
   update(event: KeyboardEvent) {
@@ -83,7 +49,7 @@ class Engine {
       this.player.move(action.dx, action.dy);
     }
 
-    // Draw player at new position
+    // Update canvas
     this.render();
   }
 }

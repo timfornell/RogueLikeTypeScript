@@ -156,5 +156,56 @@ update(event: KeyboardEvent) {
 }
 ```
 
+## Part 2 - Generic entities and map setup
+Next part is about further expanding the environment since having only a player character to move around is likely to
+become boring after a while.
+
+### Creating entities
+First step is to create a class that can be used to represent whatever entities we want to throw in to the game.
+The tutorial explains how to create a new class called <code>Entity</code>. However, since I already have a class called
+<code>Player</code> I will instead take this opportunity to try out some class inheritance. The player class and any other
+entity that will be able to move around on the canvas will undoubtedly have some common elements. My idea is
+to put these common elements in the class <code>Entity</code> and then let the <code>Player</code> class inherit
+from that class. The idea to separate the player class is that it might have some elements that other entities shouldn't
+have. At the same time a new file is created to put this in: *input-handler*. Which ends up looking like this:
+
+```TypeScript
+export class Entity {
+   x: number;
+   y: number;
+   char: string;
+   fg: string; // Foreground color
+   bg: string; // Background color
+
+   constructor(x: number, y: number, char: string, fg: string = '#fff', bg: string = '#000') {
+      this.x = x;
+      this.y = y;
+      this.char = char;
+      this.fg = fg;
+      this.bg = bg;
+   }
+
+   move(dx: number, dy: number) {
+      this.x += dx;
+      this.y += dy;
+    }
+}
+
+export class Player extends Entity {
+   constructor(x: number, y: number) {
+     super(x, y, '@', '#fff', '#000');
+   }
+}
+```
+After this, the <code>Engine</code> class is updated to include the following:
+```TypeScript
+this.player = new Player(Engine.WIDTH / 2, Engine.HEIGHT / 2);
+this.npc = new Entity(Engine.WIDTH / 2 - 5, Engine.HEIGHT / 2, '#', '#fff', '#000');
+this.entities = [this.player, this.npc];
+```
+This makes it easy to loop over any entities when drawing.
+
 ## Graphical assets
+
+
 https://kenney.nl/assets/tiny-dungeon
