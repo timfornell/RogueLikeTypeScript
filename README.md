@@ -205,7 +205,20 @@ this.entities = [this.player, this.npc];
 ```
 This makes it easy to loop over any entities when drawing.
 
+### Refactoring main.ts
+The *main.ts* file currently contains the <code>Engine</code> class, which probably makes more sense to have in a
+separate file. Therefore, it is moved to the file *engine.ts*. At the same time the constructor is modified according to:
+```TypeScript
+constructor(entities: Entity[], player: Player) {
+  this.entities = entities;
+  this.player = player;
+
+  // Unmodified code below
+}
+```
+Now, this is a bit confusing becase the input <code>entities</code> contains a reference to the same object that the
+<code>player</code> variable is referring to. This is, again, useful for when drawing all entities on the canvas and to
+make it easier to access the player character in the future.
+
 ## Graphical assets
-
-
 https://kenney.nl/assets/tiny-dungeon
