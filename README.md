@@ -213,7 +213,7 @@ constructor(entities: Entity[], player: Player) {
   this.entities = entities;
   this.player = player;
 
-  // Unmodified code below
+  // Unmodified code below is exluded
 }
 ```
 Now, this is a bit confusing becase the input <code>entities</code> contains a reference to the same object that the
