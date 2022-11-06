@@ -156,5 +156,116 @@ update(event: KeyboardEvent) {
 }
 ```
 
+## Part 2 - Generic entities and map setup
+Next part is about further expanding the environment since having only a player character to move around is likely to
+become boring after a while.
+
+### Creating entities
+First step is to create a class that can be used to represent whatever entities we want to throw in to the game.
+The tutorial explains how to create a new class called <code>Entity</code>. However, since I already have a class called
+<code>Player</code> I will instead take this opportunity to try out some class inheritance. The player class and any other
+entity that will be able to move around on the canvas will undoubtedly have some common elements. My idea is
+to put these common elements in the class <code>Entity</code> and then let the <code>Player</code> class inherit
+from that class. The idea to separate the player class is that it might have some elements that other entities shouldn't
+have. At the same time a new file is created to put this in: *input-handler*. Which ends up looking like this:
+
+```TypeScript
+export class Entity {
+   x: number;
+   y: number;
+   char: string;
+   fg: string; // Foreground color
+   bg: string; // Background color
+
+   constructor(x: number, y: number, char: string, fg: string = '#fff', bg: string = '#000') {
+      this.x = x;
+      this.y = y;
+      this.char = char;
+      this.fg = fg;
+      this.bg = bg;
+   }
+
+   move(dx: number, dy: number) {
+      this.x += dx;
+      this.y += dy;
+    }
+}
+
+export class Player extends Entity {
+   constructor(x: number, y: number) {
+     super(x, y, '@', '#fff', '#000');
+   }
+}
+```
+After this, the <code>Engine</code> class is updated to include the following:
+```TypeScript
+this.player = new Player(Engine.WIDTH / 2, Engine.HEIGHT / 2);
+this.npc = new Entity(Engine.WIDTH / 2 - 5, Engine.HEIGHT / 2, '#', '#fff', '#000');
+this.entities = [this.player, this.npc];
+```
+This makes it easy to loop over any entities when drawing.
+
+### Refactoring main.ts
+The *main.ts* file currently contains the <code>Engine</code> class, which probably makes more sense to have in a
+separate file. Therefore, it is moved to the file *engine.ts*. At the same time the constructor is modified according to:
+```TypeScript
+constructor(entities: Entity[], player: Player) {
+  this.entities = entities;
+  this.player = player;
+
+  // Unmodified code below
+}
+```
+Now, this is a bit confusing becase the input <code>entities</code> contains a reference to the same object that the
+<code>player</code> variable is referring to. This is, again, useful for when drawing all entities on the canvas and to
+make it easier to access the player character in the future.
+
+### Creating an environment
+Now that it is possible to have entities (npcs) and a player on the canvas, the next step is to create some sort of map
+that adds some more variety to the game. In order to do this, the file *tile-types.ts* is created. It contains the two
+following definitions:
+```TypeScript
+export interface Graphic {
+   char: string; // Display character
+   fg: string; // Foreground color
+   bg: string; // Background color
+}
+
+export interface Tile {
+   walkable: boolean;
+   transparent: boolean; // If see-through
+   dark: Graphic; // What to draw if not in field of view
+}
+```
+The interface <code>Tile</code> is what will be used to create the different objects for the map. At the moment, there
+are only two different tiles to start with, the <code>FLOOR_TILE</code> and the <code>WALL_TILE</code>. The first one
+is both walkable and transparent, while the second is neither.
+
+Next step is to add the actual map. To do this, a new file *game-maps.ts* is created. It contains a class
+<code>GameMap</code> which contains the following parameters and functions:
+```TypeScript
+export class GameMap {
+   width: number;
+   height: number;
+   display: Display;
+
+   tiles: Tile[][]; // First 'array' contains y coordinates and second 'array' contains x coordinates
+
+   constructor(width: number, height: number, display: Display) {
+      // Initialize the game map
+      // Iterate through this.tiles and either create a floor or wall tile for each coordinate
+   }
+
+   isInBounds(x: number, y: number) {
+      // Check if x and y coordinates are inside display borders
+   }
+
+   render() {
+      // Iterate through all objects in this.tiles and call this.display.draw
+   }
+}
+```
+As can be seen in the constructor, the game map is created there. At the moment it is very simple and only contains some
+walls at predefined positions and floor in every other place.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
