@@ -267,5 +267,105 @@ export class GameMap {
 ```
 As can be seen in the constructor, the game map is created there. At the moment it is very simple and only contains some
 walls at predefined positions and floor in every other place.
+
+## Part 3 - Dungeon Generation
+Now that the <code>GameMap</code> class is available, the natural next step is to expand upon it to create an actual
+game map. As Nick explains however, it is worth trying to separate the generation of the map from the code that
+interacts with an already created map. Therefore, a new file, *procgen.ts*, will be created.
+### Creating rooms
+We are starting simple, meaning we make it possible to create rectangular rooms. To do this a class
+<code>RectangularRoom</code> is created. As can be seen in the code below, it is a fairly straight forward class.
+Upon creating an instance of the class it requires the top left x and y position along with the width and height of the
+room.
+
+```
+class RectangularRoom {
+   tiles: Tile[][];
+
+   // The 'public' is used to directly initialize the input variables as class variables
+   constructor(public x: number, public y: number, public width: number, public height: number) {
+      this.tiles = new Array(this.height);
+      this.buildRoom();
+   }
+
+   buildRoom() {
+      // Iterate through 'tiles' and add wall tiles along the edges
+   }
+
+   public get center(): [number, number] {
+      // Get the center coordinate of the room
+   }
+}
+```
+There are two things that are worth mentioning here. The first is that the constructor utilizes the keyword 'public' for
+the input variables.Apparently, this is a way to declare that these variables will become class members without having
+to write <code>this.variable = variable</code> inside the constructor. The second is the use of the keyword 'get' for
+the function <code>center</code>. This keyword basically means that the function returns a property of the class.
+Incidentally, there is another keyword called 'set' which can be used to indicate that a function modifies a property
+of the class.
+
+Alongside this class we will also create a function called <code>generateDungeon</code>. This is the function that will
+be used by the <code>GameMap</code> class to get a generated map. It will take the display width, display height and
+a <code>Display</code> object:
+
+```TypeScript
+export function generateDungeon(width: number, height: number, display: Display): GameMap {
+   const dungeon = new GameMap(width, height, display);
+
+   const room1 = new RectangularRoom(20, 15, 10, 15);
+   const room2 = new RectangularRoom(35, 20, 10, 15);
+
+   dungeon.addRoom(room1.x, room1.y, room1.tiles);
+   dungeon.addRoom(room2.x, room2.y, room2.tiles);
+
+   return dungeon;
+}
+```
+Currently, it reteurns a map that consists of wall tiles and two rooms labeled 'room1' and 'room2'. I haven't explained
+the function <code>addRoom</code>, but it simple copies the tiles from the <code>tiles</code> variable in the respective
+room variable to the 'global' <code>tiles</code> tiles variable in the 'dungeon' variable.
+
+### Creating corridors
+Just having two rooms alongside eachother isn't necessarily super exiciting. So, to make it just a tiny bit more
+exciting, we are going to add a connection (corridor) in between them. This is done by adding a function called
+<code>connectRooms</code>. The idea is to start at the center of one room (hence the <code>center</code>), select a
+starting direction (vertical or horizontal), create walkable tiles in said direction until the corridor is aligned
+with the center of the target room then switch direction and continue the corridor until the center of the target room
+is reached. This means that all rooms will be connected by either a 90 degree turn or a straight line, depending on
+their respective orientation. The function will end up looking like this:
+```TypeScript
+function* connectRooms(a: RectangularRoom, b: RectangularRoom): Generator<[number, number], void, void> {
+   // set the start point of our tunnel at the center of the first room
+   let current = a.center;
+   // set the end point at the center of the second room
+   const end = b.center;
+
+   // flip a coin to see if we go horizontally first or vertically
+   let horizontal = Math.random() < 0.5;
+   // set our axisIndex to 0 (x axis) if horizontal or 1 (y axis) if vertical
+   let axisIndex = horizontal ? 0 : 1;
+
+   // we'll loop until our current is the same as the end point
+   while (current[0] !== end[0] || current[1] !== end[1]) {
+      //are we tunneling in the positive or negative direction?
+
+      // if direction is 0 we have hit the destination in one direction
+      const direction = Math.sign(end[axisIndex] - current[axisIndex]);
+      if (direction !== 0) {
+         current[axisIndex] += direction;
+      } else {
+         // we've finished in this direction so switch to the other
+         axisIndex = axisIndex === 0 ? 1 : 0;
+      }
+
+      yield current;
+   }
+}
+```
+This new function is however a bit special. It isn't a normal function, it is a 'generator function'. This is indicated
+by the 'Generator' keyword that can be seen after the 'usual' function defintion. The reason for declaring this function
+as a generator function is to make use of the keyword 'yield'. There is probably more to this than I understand, but
+this makes it possible for a function to return values during execution while still allowing further execution.
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
