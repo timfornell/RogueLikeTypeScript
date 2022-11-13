@@ -20,7 +20,7 @@ export class GameMap {
 
          for (let x = 0; x < this.width; x++) {
              // Important: '...' is used to create copies of 'WALL_TILE' and not references
-            row[x] = { ...FLOOR_TILE };
+            row[x] = { ...WALL_TILE };
          }
 
          this.tiles[y] = row;
