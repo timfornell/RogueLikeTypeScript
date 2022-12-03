@@ -213,7 +213,7 @@ constructor(entities: Entity[], player: Player) {
   this.entities = entities;
   this.player = player;
 
-  // Unmodified code below
+  // Unmodified code below is exluded
 }
 ```
 Now, this is a bit confusing becase the input <code>entities</code> contains a reference to the same object that the
@@ -267,5 +267,189 @@ export class GameMap {
 ```
 As can be seen in the constructor, the game map is created there. At the moment it is very simple and only contains some
 walls at predefined positions and floor in every other place.
+
+## Part 3 - Dungeon Generation
+Now that the <code>GameMap</code> class is available, the natural next step is to expand upon it to create an actual
+game map. As Nick explains however, it is worth trying to separate the generation of the map from the code that
+interacts with an already created map. Therefore, a new file, *procgen.ts*, will be created.
+### Creating rooms
+We are starting simple, meaning we make it possible to create rectangular rooms. To do this a class
+<code>RectangularRoom</code> is created. As can be seen in the code below, it is a fairly straight forward class.
+Upon creating an instance of the class it requires the top left x and y position along with the width and height of the
+room.
+
+```
+class RectangularRoom {
+   tiles: Tile[][];
+
+   // The 'public' is used to directly initialize the input variables as class variables
+   constructor(public x: number, public y: number, public width: number, public height: number) {
+      this.tiles = new Array(this.height);
+      this.buildRoom();
+   }
+
+   buildRoom() {
+      // Iterate through 'tiles' and add wall tiles along the edges
+   }
+
+   public get center(): [number, number] {
+      // Get the center coordinate of the room
+   }
+}
+```
+There are two things that are worth mentioning here. The first is that the constructor utilizes the keyword 'public' for
+the input variables.Apparently, this is a way to declare that these variables will become class members without having
+to write <code>this.variable = variable</code> inside the constructor. The second is the use of the keyword 'get' for
+the function <code>center</code>. This keyword basically means that the function returns a property of the class.
+Incidentally, there is another keyword called 'set' which can be used to indicate that a function modifies a property
+of the class.
+
+Alongside this class we will also create a function called <code>generateDungeon</code>. This is the function that will
+be used by the <code>GameMap</code> class to get a generated map. It will take the display width, display height and
+a <code>Display</code> object:
+
+```TypeScript
+export function generateDungeon(width: number, height: number, display: Display): GameMap {
+   const dungeon = new GameMap(width, height, display);
+
+   const room1 = new RectangularRoom(20, 15, 10, 15);
+   const room2 = new RectangularRoom(35, 20, 10, 15);
+
+   dungeon.addRoom(room1.x, room1.y, room1.tiles);
+   dungeon.addRoom(room2.x, room2.y, room2.tiles);
+
+   return dungeon;
+}
+```
+Currently, it reteurns a map that consists of wall tiles and two rooms labeled 'room1' and 'room2'. I haven't explained
+the function <code>addRoom</code>, but it simple copies the tiles from the <code>tiles</code> variable in the respective
+room variable to the 'global' <code>tiles</code> tiles variable in the 'dungeon' variable.
+
+### Creating corridors
+Just having two rooms alongside eachother isn't necessarily super exiciting. So, to make it just a tiny bit more
+exciting, we are going to add a connection (corridor) in between them. This is done by adding a function called
+<code>connectRooms</code>. The idea is to start at the center of one room (hence the <code>center</code>), select a
+starting direction (vertical or horizontal), create walkable tiles in said direction until the corridor is aligned
+with the center of the target room then switch direction and continue the corridor until the center of the target room
+is reached. This means that all rooms will be connected by either a 90 degree turn or a straight line, depending on
+their respective orientation. The function will end up looking like this:
+```TypeScript
+function* connectRooms(a: RectangularRoom, b: RectangularRoom): Generator<[number, number], void, void> {
+   // set the start point of our tunnel at the center of the first room
+   let current = a.center;
+   // set the end point at the center of the second room
+   const end = b.center;
+
+   // flip a coin to see if we go horizontally first or vertically
+   let horizontal = Math.random() < 0.5;
+   // set our axisIndex to 0 (x axis) if horizontal or 1 (y axis) if vertical
+   let axisIndex = horizontal ? 0 : 1;
+
+   // we'll loop until our current is the same as the end point
+   while (current[0] !== end[0] || current[1] !== end[1]) {
+      //are we tunneling in the positive or negative direction?
+
+      // if direction is 0 we have hit the destination in one direction
+      const direction = Math.sign(end[axisIndex] - current[axisIndex]);
+      if (direction !== 0) {
+         current[axisIndex] += direction;
+      } else {
+         // we've finished in this direction so switch to the other
+         axisIndex = axisIndex === 0 ? 1 : 0;
+      }
+
+      yield current;
+   }
+}
+```
+This new function is however a bit special. It isn't a normal function, it is a 'generator function'. This is indicated
+by the 'Generator' keyword that can be seen after the 'usual' function defintion. The reason for declaring this function
+as a generator function is to make use of the keyword 'yield'. There is probably more to this than I understand, but
+this makes it possible for a function to return values during execution while still allowing further execution.
+
+### Creating random dungeons
+Now that functionality to create rooms and connect them with corridors, then natural next step is to create more rooms.
+The rooms available up until this step are hard coded so for this part the focus will be to instead generate random
+rooms. To make this possible, some functions are added in the *procgen.ts* file, one utility function and one class
+function in the <code>RectangularRoom</code> class:
+
+```TypeScript
+class RectangularRoom {
+
+   // Existing code excluded
+
+   intersects(other: RectangularRoom): boolean {
+      return (
+         this.x <= other.x + other.width &&
+         this.x + this.width >= other.x &&
+         this.y <= other.y + other.height &&
+         this.y + this.width >= other.y
+      );
+   }
+}
+
+function generateRandomNumber(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+```
+
+The first function, <code>intersects</code>, checks if the current object intersect with the room provided as input.
+The second function is pretty self explanatory.
+
+Next step is to rewrite the entire <code>generateDungeon</code> function to make use of these two functions to generate
+a 'random' dungeon. Firstly, it is updated with a few more input variables that indicate the max number of rooms and the
+max size of the rooms in x and y direction, along with a reference to the player object. The player object is added so
+that it can be spawned at a desired location in the generated rooms. The function body is rewritten to iterate over the
+variable <code>maxRooms</code>, generate a random room, check if it intersects with any existing rooms and add it to the
+dungeon if it doesn't. If it overlaps, it is allowed to retry up to <code>maxTries</code> (= 10) times to find another
+room that can be added.
+
+```TypeScript
+// Try to create maxRooms, if intersection with existing room retry up to maxTries times
+for (let count = 0; count < maxRooms; count++) {
+   var newRoom: RectangularRoom;
+
+   for (let numTries = 0; numTries < maxTries; numTries++) {
+      newRoom = generateRandomRoom(minSize, maxSize, mapWidth, mapHeight);
+
+      if (rooms.some(r => r.intersects(newRoom))) {
+         continue;
+      } else {
+         dungeon.addRoom(newRoom.x, newRoom.y, newRoom.tiles);
+         rooms.push(newRoom);
+         break;
+      }
+   }
+}
+```
+
+As mentioned, the function now takes a reference to the player entity as an input. The player is spawned in a random
+room with the following code (after all rooms have been created):
+
+```TypeScript
+// Spawn player in a random room
+const startingRoomIndex = generateRandomNumber(0, rooms.length - 1);
+const startPoint = rooms[startingRoomIndex].center;
+player.x = startPoint[0];
+player.y = startPoint[1];
+```
+
+Last part is to connect all the rooms to eachother. This is done in a very simple way, by iterating over the created
+rooms and connecting them pairwise:
+
+```TypeScript
+// Connect rooms
+for (let index = 0; index < rooms.length - 1; index++) {
+   const first = rooms[index];
+   const second = rooms[index + 1];
+
+   for (let tile of connectRooms(first, second)) {
+      dungeon.tiles[tile[1]][tile[0]] = { ...FLOOR_TILE};
+   }
+}
+```
+
+If the call to <code>generateDungeon</code> is modified to include the new parameters the dungeon map now includes
+randomly generated rooms and the player entity is spawned randomly in one of them.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
