@@ -367,5 +367,89 @@ by the 'Generator' keyword that can be seen after the 'usual' function defintion
 as a generator function is to make use of the keyword 'yield'. There is probably more to this than I understand, but
 this makes it possible for a function to return values during execution while still allowing further execution.
 
+### Creating random dungeons
+Now that functionality to create rooms and connect them with corridors, then natural next step is to create more rooms.
+The rooms available up until this step are hard coded so for this part the focus will be to instead generate random
+rooms. To make this possible, some functions are added in the *procgen.ts* file, one utility function and one class
+function in the <code>RectangularRoom</code> class:
+
+```TypeScript
+class RectangularRoom {
+
+   // Existing code excluded
+
+   intersects(other: RectangularRoom): boolean {
+      return (
+         this.x <= other.x + other.width &&
+         this.x + this.width >= other.x &&
+         this.y <= other.y + other.height &&
+         this.y + this.width >= other.y
+      );
+   }
+}
+
+function generateRandomNumber(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+```
+
+The first function, <code>intersects</code>, checks if the current object intersect with the room provided as input.
+The second function is pretty self explanatory.
+
+Next step is to rewrite the entire <code>generateDungeon</code> function to make use of these two functions to generate
+a 'random' dungeon. Firstly, it is updated with a few more input variables that indicate the max number of rooms and the
+max size of the rooms in x and y direction, along with a reference to the player object. The player object is added so
+that it can be spawned at a desired location in the generated rooms. The function body is rewritten to iterate over the
+variable <code>maxRooms</code>, generate a random room, check if it intersects with any existing rooms and add it to the
+dungeon if it doesn't. If it overlaps, it is allowed to retry up to <code>maxTries</code> (= 10) times to find another
+room that can be added.
+
+```TypeScript
+// Try to create maxRooms, if intersection with existing room retry up to maxTries times
+for (let count = 0; count < maxRooms; count++) {
+   var newRoom: RectangularRoom;
+
+   for (let numTries = 0; numTries < maxTries; numTries++) {
+      newRoom = generateRandomRoom(minSize, maxSize, mapWidth, mapHeight);
+
+      if (rooms.some(r => r.intersects(newRoom))) {
+         continue;
+      } else {
+         dungeon.addRoom(newRoom.x, newRoom.y, newRoom.tiles);
+         rooms.push(newRoom);
+         break;
+      }
+   }
+}
+```
+
+As mentioned, the function now takes a reference to the player entity as an input. The player is spawned in a random
+room with the following code (after all rooms have been created):
+
+```TypeScript
+// Spawn player in a random room
+const startingRoomIndex = generateRandomNumber(0, rooms.length - 1);
+const startPoint = rooms[startingRoomIndex].center;
+player.x = startPoint[0];
+player.y = startPoint[1];
+```
+
+Last part is to connect all the rooms to eachother. This is done in a very simple way, by iterating over the created
+rooms and connecting them pairwise:
+
+```TypeScript
+// Connect rooms
+for (let index = 0; index < rooms.length - 1; index++) {
+   const first = rooms[index];
+   const second = rooms[index + 1];
+
+   for (let tile of connectRooms(first, second)) {
+      dungeon.tiles[tile[1]][tile[0]] = { ...FLOOR_TILE};
+   }
+}
+```
+
+If the call to <code>generateDungeon</code> is modified to include the new parameters the dungeon map now includes
+randomly generated rooms and the player entity is spawned randomly in one of them.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

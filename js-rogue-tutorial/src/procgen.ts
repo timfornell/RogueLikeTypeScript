@@ -1,6 +1,7 @@
 import { FLOOR_TILE, WALL_TILE, Tile } from "./tile-types";
 import { GameMap } from "./game-map";
 import { Display } from "rot-js";
+import { Player } from "./entity-classes";
 
 class RectangularRoom {
    tiles: Tile[][];
@@ -29,20 +30,64 @@ class RectangularRoom {
       const centerY = this.y + Math.floor(this.height / 2);
       return [centerX, centerY];
    }
+
+   intersects(other: RectangularRoom): boolean {
+      return (
+         this.x <= other.x + other.width &&
+         this.y <= other.y + other.height &&
+         this.x + this.width >= other.x &&
+         this.y + this.width >= other.y
+      );
+   }
 }
 
-export function generateDungeon(width: number, height: number, display: Display): GameMap {
-   const dungeon = new GameMap(width, height, display);
+export function generateDungeon(
+   mapWidth: number,
+   mapHeight: number,
+   maxRooms: number,
+   minSize: number,
+   maxSize: number,
+   player: Player,
+   display: Display
+): GameMap {
+   const maxTries: number = 10;
+   const dungeon = new GameMap(mapWidth, mapHeight, display);
 
-   const room1 = new RectangularRoom(20, 15, 10, 15);
-   const room2 = new RectangularRoom(35, 20, 10, 15);
+   // https://www.tutorialspoint.com/typescript/typescript_variables.htm
+   // Syntax to declare type of 'rooms' and its value on the same row
+   const rooms: RectangularRoom[] = [];
 
-   dungeon.addRoom(room1.x, room1.y, room1.tiles);
-   dungeon.addRoom(room2.x, room2.y, room2.tiles);
+   // Try to create maxRooms, if intersection with existing room retry up to maxTries times
+   for (let count = 0; count < maxRooms; count++) {
+      var newRoom: RectangularRoom;
 
-   for (let tile of connectRooms(room1, room2)) {
-      // tile contains an array of [x, y] coordinates
-      dungeon.tiles[tile[1]][tile[0]] = { ...FLOOR_TILE };
+      for (let numTries = 0; numTries < maxTries; numTries++) {
+         newRoom = generateRandomRoom(minSize, maxSize, mapWidth, mapHeight);
+
+         if (rooms.some(r => r.intersects(newRoom))) {
+            continue;
+         } else {
+            dungeon.addRoom(newRoom.x, newRoom.y, newRoom.tiles);
+            rooms.push(newRoom);
+            break;
+         }
+      }
+   }
+
+   // Spawn player in a random room
+   const startingRoomIndex = generateRandomNumber(0, rooms.length - 1);
+   const startPoint = rooms[startingRoomIndex].center;
+   player.x = startPoint[0];
+   player.y = startPoint[1];
+
+   // Connect rooms
+   for (let index = 0; index < rooms.length - 1; index++) {
+      const first = rooms[index];
+      const second = rooms[index + 1];
+
+      for (let tile of connectRooms(first, second)) {
+         dungeon.tiles[tile[1]][tile[0]] = { ...FLOOR_TILE};
+      }
    }
 
    return dungeon;
@@ -74,4 +119,22 @@ function* connectRooms(a: RectangularRoom, b: RectangularRoom): Generator<[numbe
 
       yield current;
    }
+}
+
+function generateRandomNumber(min: number, max: number) {
+   return Math.floor(Math.random() * (max - min) + min);
+}
+
+function generateRandomRoom(
+   minSize: number,
+   maxSize: number,
+   mapWidth: number,
+   mapHeight: number
+): RectangularRoom {
+   const width = generateRandomNumber(minSize, maxSize);
+   const height = generateRandomNumber(minSize, maxSize);
+   const x = generateRandomNumber(0, mapWidth - width - 1);
+   const y = generateRandomNumber(0, mapHeight - height - 1);
+
+   return new RectangularRoom(x, y, width, height);
 }

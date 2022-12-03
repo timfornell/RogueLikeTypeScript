@@ -24,7 +24,14 @@ export class Engine {
       this.entities = entities;
       this.player = player;
 
-      this.gameMap = generateDungeon(Engine.MAP_WIDTH, Engine.MAP_HEIGHT, this.display);
+      this.gameMap = generateDungeon(
+         Engine.MAP_WIDTH,
+         Engine.MAP_HEIGHT,
+         10,
+         10,
+         20,
+         this.player,
+         this.display);
 
 
       // '!' tells the compiler that the object returned by 'getContainer' is never null
