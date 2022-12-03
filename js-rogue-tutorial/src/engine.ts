@@ -33,7 +33,6 @@ export class Engine {
          this.player,
          this.display);
 
-
       // '!' tells the compiler that the object returned by 'getContainer' is never null
       const container = this.display.getContainer()!;
       document.body.appendChild(container);
@@ -42,8 +41,8 @@ export class Engine {
          this.update(event);
       });
 
+      this.gameMap.updateFov(this.player);
       this.render();
-
    }
 
    render() {
@@ -66,6 +65,7 @@ export class Engine {
       }
 
       // Update canvas
+      this.gameMap.updateFov(this.player);
       this.render();
    }
 }

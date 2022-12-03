@@ -1,19 +1,13 @@
 // Make it possible to import 'Entity' in other files
 
 export class Entity {
-   x: number;
-   y: number;
-   char: string;
-   fg: string; // Foreground color
-   bg: string; // Background color
-
-   constructor(x: number, y: number, char: string, fg: string = '#fff', bg: string = '#000') {
-      this.x = x;
-      this.y = y;
-      this.char = char;
-      this.fg = fg;
-      this.bg = bg;
-   }
+   constructor(
+      public x: number,
+      public y: number,
+      public char: string,
+      public fg: string = '#fff',
+      public bg: string = '#000'
+      ) {}
 
    move(dx: number, dy: number) {
       this.x += dx;
@@ -23,6 +17,6 @@ export class Entity {
 
 export class Player extends Entity {
    constructor(x: number, y: number) {
-     super(x, y, '@', '#fff', '#000');
+     super(x, y, '@', '#fff', '#c8b432');
    }
 }
