@@ -451,5 +451,56 @@ for (let index = 0; index < rooms.length - 1; index++) {
 
 If the call to <code>generateDungeon</code> is modified to include the new parameters the dungeon map now includes
 randomly generated rooms and the player entity is spawned randomly in one of them.
+
+## Part 4 - Field of View
+At the moment the whole map is always visible regardless of where the player is. This doesn't really make sense, so the
+next step is to add visibility based on where the player is. To do this the first step is to expand the <code>Tile</code>
+interface according to:
+
+```TypeScript
+export interface Tile {
+   walkable: boolean;
+   transparent: boolean; // If see-through
+   visible: boolean; // If block can be seen by player
+   seen: boolean; // If blocke has previously been seeen by player
+   dark: Graphic; // What to draw if not in field of view
+   light: Graphic; // What to draw if block is in field of view
+};
+```
+
+Calculating what blocks are in the players field of view will be in a new function, <code>updateFov</code>, inside the
+<code>GameMap</code> class with <code>PreciseShadowcasting</code> from theROT library. According to:
+
+```TypeScript
+updateFov(player: Player) {
+   // Reset visibility for all available tiles
+   for (let y = 0; y < this.height; y++) {
+      for (let x = 0; x < this.width; x++) {
+         this.tiles[y][x].visible = false;
+      }
+   }
+
+   const fovRadius: number = 8;
+   const fov = new ROT.FOV.PreciseShadowcasting(this.lightPasses.bind(this));
+   fov.compute(player.x, player.y, fovRadius, (x, y, _r, visibility) => {
+      // This is passed as a callback function to the 'compute' function
+      if (visibility === 1) {
+         this.tiles[y][x].visible = true;
+         this.tiles[y][x].seen = true;
+      }
+   });
+}
+```
+
+Since this function is called every time the screen is rendered, it starts of by "resetting" the visible flag for all
+blocks on the map. If not, previously seen blocks will remain visible even after the player isn't near them anymore.
+The function <code>lightPasses</code> that is passed to <code>PreciseShadowcasting</code> is used to make sure that when
+the visible blocks are calculated, we always look at x and y coordinates inside the game map. Without it, it is possible
+that negative coordinates are attemped to be indexed, depending on where the player stands. The actualy computation is
+done by calling the <code>compute</code> function. As can be seen, it takes the player position, a fov radius and a
+lambda function. The lambda function is used as a callback function and will be called for every tile computed by the
+algorithm. This callback function checks the return value <code>visibility</code> from the fov computation and if it
+equals 1, sets the tile at coordinates (x, y) to visible.
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
