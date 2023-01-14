@@ -12,16 +12,14 @@ export class Engine {
    display: ROT.Display;
 
    player: Player;
-   entities: Entity[]
 
-   constructor(entities: Entity[], player: Player) {
+   constructor(player: Player) {
       this.display = new ROT.Display({
          width: Engine.MAP_WIDTH,
          height: Engine.MAP_HEIGHT,
          forceSquareRatio: true
       });
 
-      this.entities = entities;
       this.player = player;
 
       this.gameMap = generateDungeon(
@@ -47,10 +45,6 @@ export class Engine {
 
    render() {
       this.gameMap.render();
-
-      for (var entity of this.entities) {
-         this.display.draw(entity.x, entity.y, entity.char, entity.fg, entity.bg);
-      }
    }
 
    update(event: KeyboardEvent) {

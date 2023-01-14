@@ -502,5 +502,16 @@ lambda function. The lambda function is used as a callback function and will be 
 algorithm. This callback function checks the return value <code>visibility</code> from the fov computation and if it
 equals 1, sets the tile at coordinates (x, y) to visible.
 
+## Part 5 - Adding enemies
+A true dungeoncrawler needs enemies, so to take this game a tiny bit closer to this, some enemies need to be added.
+
+### But first, some housekeeping
+The housekeeping consists of shuffling some code around. The idea is to move the list of entities from the *main.ts*
+file to the class <code>GameMap</code>. Which, makes more sense if you think about it. The enemies could be considered
+to be "part" of the map and will be interacted with by the player in the same way as other map structures.
+
+### Spawning enemies
+
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

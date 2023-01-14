@@ -51,7 +51,7 @@ export function generateDungeon(
    display: Display
 ): GameMap {
    const maxTries: number = 10;
-   const dungeon = new GameMap(mapWidth, mapHeight, display);
+   const dungeon = new GameMap(mapWidth, mapHeight, display, [player]);
 
    // https://www.tutorialspoint.com/typescript/typescript_variables.htm
    // Syntax to declare type of 'rooms' and its value on the same row
