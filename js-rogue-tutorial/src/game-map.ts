@@ -1,7 +1,7 @@
 import * as ROT from 'rot-js';
 import { Display } from 'rot-js';
 import { FLOOR_TILE, Tile } from './tile-types';
-import { Entity, Player } from './entity-classes';
+import { Entity } from './entity-classes';
 import { WALL_TILE } from './tile-types';
 
 export class GameMap {
@@ -78,7 +78,7 @@ export class GameMap {
       return false;
    }
 
-   updateFov(player: Player) {
+   updateFov(player: Entity) {
       // Reset visibility for all available tiles
       for (let y = 0; y < this.height; y++) {
          for (let x = 0; x < this.width; x++) {

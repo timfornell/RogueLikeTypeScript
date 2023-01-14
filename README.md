@@ -511,7 +511,72 @@ file to the class <code>GameMap</code>. Which, makes more sense if you think abo
 to be "part" of the map and will be interacted with by the player in the same way as other map structures.
 
 ### Spawning enemies
+There are probably many different ways of doing this, but the idea for now is to, whenever a room is created, spawn a
+random number of enemies in said room at various locations. To make this as simple as possible, an interface containing
+the boundaries of the rooms is created:
 
+```TypeScript
+interface Bounds {
+   x1: number;
+   y1: number;
+   x2: number;
+   y2: number;
+}
+```
 
+Together with a getter in the class <code>RectangularRoom</code>.
+
+After this, a function to do the actual spawning is created. It is called <code>placeEntities</code> and is placed in
+the *procgen.ts* file. It takes in the max number of monster to spawn alongside with the game map and the room to spawn
+in. It then tries to create a ranom number of monsters at random locations inside the room. If the place is already
+occupied by another monster, no new position is found.
+
+```TypeScript
+function placeEntities(
+   room: RectangularRoom,
+   dungeon: GameMap,
+   maxMonsters: number,
+) {
+   const numberOfMonstersToAdd = generateRandomNumber(0, maxMonsters);
+
+   for (let i = 0; i < numberOfMonstersToAdd; i++) {
+      const bounds = room.bounds;
+      const x = generateRandomNumber(bounds.x1 + 1, bounds.x2 - 1);
+      const y = generateRandomNumber(bounds.y1 + 1, bounds.y2 - 1);
+
+      // Check if there are any monsters at selected position
+      if (!dungeon.entities.some((e) => e.x == x && e.y == y)) {
+         // Determine if monster should be and Ogre or a Troll
+         if (Math.random() < 0.8) {
+            console.log("We'll be putting an orc at (${x}, ${y})!");
+         } else {
+            console.log("We'll be putting a troll at (${x}, ${y})!");
+         }
+      }
+   }
+}
+```
+
+As can be seen in the function <code>placeEntities</code>, nothing is actually added to the dungeon yet. It only prints
+a message to the console that an entity will be spawned at a specific location. This is solved by adding some helper
+functions in the *entity-classes.ts* file:
+
+```TypeScript
+
+export function spawnPlayer(x: number, y: number): Entity {
+   return new Entity(x, y, '@', '#fff', '#000', 'Player', true);
+}
+
+export function spawnOrc(x: number, y: number): Entity {
+   return new Entity(x, y, 'o', '#3f7f3f', '#000', 'Orc', true);
+}
+
+export function spawnTroll(x: number, y: number): Entity {
+   return new Entity(x, y, 'T', '#007f00', '#000', 'Troll', true);
+}
+```
+
+The functions for spawning the troll and the orc will replace the print outs seen in the previous function and the
+function for spawning a player, will be used in *main.ts* where the player instance is created.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
