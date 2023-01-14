@@ -50,7 +50,9 @@ export class GameMap {
          }
 
          this.entities.forEach((e) => {
-            this.display.draw(e.x, e.y, e.char, e.fg, e.bg)
+            if (this.tiles[e.y][e.x].visible) {
+               this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+            }
          });
       }
    }

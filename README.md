@@ -578,5 +578,19 @@ export function spawnTroll(x: number, y: number): Entity {
 
 The functions for spawning the troll and the orc will replace the print outs seen in the previous function and the
 function for spawning a player, will be used in *main.ts* where the player instance is created.
+
+### Seeing through walls
+At this point, the enemies are always visible on screen, regardless if they are in the players field of view or not. To
+fix this, the render function is updated according to:
+
+```TypeScript
+this.entities.forEach((e) => {
+   if (this.tiles[e.y][e.x].visible) {
+      this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+   }
+});
+```
+
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
