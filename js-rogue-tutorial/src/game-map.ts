@@ -26,6 +26,10 @@ export class GameMap {
       }
    }
 
+   public get nonPlayerEntities(): Entity[] {
+      return this.entities.filter((e) => e.name !== 'Player');
+   }
+
    render() {
       for (let y = 0; y < this.tiles.length; y++) {
          const row = this.tiles[y];

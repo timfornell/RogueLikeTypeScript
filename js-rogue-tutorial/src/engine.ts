@@ -63,8 +63,18 @@ export class Engine {
          action.perform(this, this.player);
       }
 
+      this.handleEnemyturns();
+
       // Update canvas
       this.gameMap.updateFov(this.player);
       this.render();
+   }
+
+   handleEnemyturns() {
+      this.gameMap.nonPlayerEntities.forEach((e) => {
+         console.log(
+            `The ${e.name} wonders when it will get to take a real turn.`,
+         );
+      });
    }
 }
