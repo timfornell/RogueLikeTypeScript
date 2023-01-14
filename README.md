@@ -607,6 +607,52 @@ getBlockingEntityAtLocation(x: number, y: number): Entity | undefined {
 }
 ```
 
+### Punching
+As part of making it possible for enemies to block the path of the player, some changes were made in the
+*input-handler.ts* file. An abstract class called <code>ActionWithDirection</code> was created:
+
+```TypeScript
+export abstract class ActionWithDirection implements Action {
+   constructor(public dx: number, public dy: number) {}
+
+   perform(_engine: Engine, _entity: Entity) {}
+}
+```
+
+This class was used to redefine the <code>MovementAction</code> class from earlier and will now be used to create two
+new classes called <code>MeleeAction</code> and <code>BumpAction</code>:
+
+```TypeScript
+export class MeleeAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      const target = engine.gameMap.getBlockingEntityAtLocation(destX, destY);
+
+      if (!target) return;
+
+      console.log(`You kick the ${target.name}, much to its annoyance!`);
+   }
+}
+
+export class BumpAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      if (engine.gameMap.getBlockingEntityAtLocation(destX, destY)) {
+         return new MeleeAction(this.dx, this.dy).perform(engine, entity);
+      } else {
+         return new MovementAction(this.dx, this.dy).perform(engine, entity);
+      }
+   }
+}
+```
+
+The class <code>BumpAction</code> will replace the <code><MovementAction</code>, that was currently mapped in the
+variable <code>MOVE_KEYS</code>.
+
 
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

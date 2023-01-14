@@ -26,17 +26,43 @@ export class MovementAction extends ActionWithDirection {
    }
 }
 
+export class MeleeAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      const target = engine.gameMap.getBlockingEntityAtLocation(destX, destY);
+
+      if (!target) return;
+
+      console.log(`You kick the ${target.name}, much to its annoyance!`);
+   }
+}
+
+export class BumpAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      if (engine.gameMap.getBlockingEntityAtLocation(destX, destY)) {
+         return new MeleeAction(this.dx, this.dy).perform(engine, entity);
+      } else {
+         return new MovementAction(this.dx, this.dy).perform(engine, entity);
+      }
+   }
+}
+
 interface MovementMap {
-   // This mean that MovementMap will contain an array of undetermined size where the keys are strings and the values
+   // This means that MovementMap will contain an array of undetermined size where the keys are strings and the values
    //  are of type Action.
    [key: string]: Action;
 }
 
 const MOVE_KEYS: MovementMap = {
-   ArrowUp: new MovementAction(0, -1),
-   ArrowDown: new MovementAction(0, 1),
-   ArrowLeft: new MovementAction(-1, 0),
-   ArrowRight: new MovementAction(1, 0),
+   ArrowUp: new BumpAction(0, -1),
+   ArrowDown: new BumpAction(0, 1),
+   ArrowLeft: new BumpAction(-1, 0),
+   ArrowRight: new BumpAction(1, 0),
 };
 
 export function handleInput(event: KeyboardEvent): Action {
