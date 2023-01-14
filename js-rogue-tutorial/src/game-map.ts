@@ -1,7 +1,7 @@
 import * as ROT from 'rot-js';
 import { Display } from 'rot-js';
 import { FLOOR_TILE, Tile } from './tile-types';
-import { Player } from './entity-classes';
+import { Entity } from './entity-classes';
 import { WALL_TILE } from './tile-types';
 
 export class GameMap {
@@ -10,7 +10,8 @@ export class GameMap {
    constructor(
       public width: number,
       public height: number,
-      public display: Display
+      public display: Display,
+      public entities: Entity[],
    ) {
       this.tiles = new Array(this.height);
       for (let y = 0; y < this.height; y++) {
@@ -23,6 +24,10 @@ export class GameMap {
 
          this.tiles[y] = row;
       }
+   }
+
+   public get nonPlayerEntities(): Entity[] {
+      return this.entities.filter((e) => e.name !== 'Player');
    }
 
    render() {
@@ -47,6 +52,12 @@ export class GameMap {
 
             this.display.draw(x, y, char, fg, bg);
          }
+
+         this.entities.forEach((e) => {
+            if (this.tiles[e.y][e.x].visible) {
+               this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+            }
+         });
       }
    }
 
@@ -73,7 +84,7 @@ export class GameMap {
       return false;
    }
 
-   updateFov(player: Player) {
+   updateFov(player: Entity) {
       // Reset visibility for all available tiles
       for (let y = 0; y < this.height; y++) {
          for (let x = 0; x < this.width; x++) {
@@ -90,5 +101,13 @@ export class GameMap {
             this.tiles[y][x].seen = true;
          }
       });
+   }
+
+   // The '|' is used to say that a function/method can return different types. In this case, the find function will
+   // either return an Entity object or undefined, if no Entity fulfilling the criteria was found.
+   getBlockingEntityAtLocation(x: number, y: number): Entity | undefined {
+      return this.entities.find(
+         (e) => e.blocksMovement && e.x === x && e.y === y,
+      );
    }
 }

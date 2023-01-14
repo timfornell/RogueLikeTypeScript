@@ -502,5 +502,157 @@ lambda function. The lambda function is used as a callback function and will be 
 algorithm. This callback function checks the return value <code>visibility</code> from the fov computation and if it
 equals 1, sets the tile at coordinates (x, y) to visible.
 
+## Part 5 - Adding enemies
+A true dungeoncrawler needs enemies, so to take this game a tiny bit closer to this, some enemies need to be added.
+
+### But first, some housekeeping
+The housekeeping consists of shuffling some code around. The idea is to move the list of entities from the *main.ts*
+file to the class <code>GameMap</code>. Which, makes more sense if you think about it. The enemies could be considered
+to be "part" of the map and will be interacted with by the player in the same way as other map structures.
+
+### Spawning enemies
+There are probably many different ways of doing this, but the idea for now is to, whenever a room is created, spawn a
+random number of enemies in said room at various locations. To make this as simple as possible, an interface containing
+the boundaries of the rooms is created:
+
+```TypeScript
+interface Bounds {
+   x1: number;
+   y1: number;
+   x2: number;
+   y2: number;
+}
+```
+
+Together with a getter in the class <code>RectangularRoom</code>.
+
+After this, a function to do the actual spawning is created. It is called <code>placeEntities</code> and is placed in
+the *procgen.ts* file. It takes in the max number of monster to spawn alongside with the game map and the room to spawn
+in. It then tries to create a ranom number of monsters at random locations inside the room. If the place is already
+occupied by another monster, no new position is found.
+
+```TypeScript
+function placeEntities(
+   room: RectangularRoom,
+   dungeon: GameMap,
+   maxMonsters: number,
+) {
+   const numberOfMonstersToAdd = generateRandomNumber(0, maxMonsters);
+
+   for (let i = 0; i < numberOfMonstersToAdd; i++) {
+      const bounds = room.bounds;
+      const x = generateRandomNumber(bounds.x1 + 1, bounds.x2 - 1);
+      const y = generateRandomNumber(bounds.y1 + 1, bounds.y2 - 1);
+
+      // Check if there are any monsters at selected position
+      if (!dungeon.entities.some((e) => e.x == x && e.y == y)) {
+         // Determine if monster should be and Ogre or a Troll
+         if (Math.random() < 0.8) {
+            console.log("We'll be putting an orc at (${x}, ${y})!");
+         } else {
+            console.log("We'll be putting a troll at (${x}, ${y})!");
+         }
+      }
+   }
+}
+```
+
+As can be seen in the function <code>placeEntities</code>, nothing is actually added to the dungeon yet. It only prints
+a message to the console that an entity will be spawned at a specific location. This is solved by adding some helper
+functions in the *entity-classes.ts* file:
+
+```TypeScript
+
+export function spawnPlayer(x: number, y: number): Entity {
+   return new Entity(x, y, '@', '#fff', '#000', 'Player', true);
+}
+
+export function spawnOrc(x: number, y: number): Entity {
+   return new Entity(x, y, 'o', '#3f7f3f', '#000', 'Orc', true);
+}
+
+export function spawnTroll(x: number, y: number): Entity {
+   return new Entity(x, y, 'T', '#007f00', '#000', 'Troll', true);
+}
+```
+
+The functions for spawning the troll and the orc will replace the print outs seen in the previous function and the
+function for spawning a player, will be used in *main.ts* where the player instance is created.
+
+### Seeing through walls
+At this point, the enemies are always visible on screen, regardless if they are in the players field of view or not. To
+fix this, the render function is updated according to:
+
+```TypeScript
+this.entities.forEach((e) => {
+   if (this.tiles[e.y][e.x].visible) {
+      this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+   }
+});
+```
+
+### Ghosts
+Another feature of the enemy entities at the moment is that it is possible to walk directly through them. To fix this,
+a property was added to the <code>Entity</code> class earlier: <code>blocksMovement</code>. Currently, it isn't
+utilized at all. To change this, a method called <code>getBlockingEntityAtLocation</code> is added to the
+<code>GameMap</code> class:
+
+```TypeScript
+// The '|' is used to say that a function/method can return different types. In this case, the find function will
+// either return an Entity object or undefined, if no Entity fulfilling the criteria was found.
+getBlockingEntityAtLocation(x: number, y: number): Entity | undefined {
+   return this.entities.find(
+      (e) => e.blocksMovement && e.x === x && e.y === y,
+   );
+}
+```
+
+### Punching
+As part of making it possible for enemies to block the path of the player, some changes were made in the
+*input-handler.ts* file. An abstract class called <code>ActionWithDirection</code> was created:
+
+```TypeScript
+export abstract class ActionWithDirection implements Action {
+   constructor(public dx: number, public dy: number) {}
+
+   perform(_engine: Engine, _entity: Entity) {}
+}
+```
+
+This class was used to redefine the <code>MovementAction</code> class from earlier and will now be used to create two
+new classes called <code>MeleeAction</code> and <code>BumpAction</code>:
+
+```TypeScript
+export class MeleeAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      const target = engine.gameMap.getBlockingEntityAtLocation(destX, destY);
+
+      if (!target) return;
+
+      console.log(`You kick the ${target.name}, much to its annoyance!`);
+   }
+}
+
+export class BumpAction extends ActionWithDirection {
+   perform(engine: Engine, entity: Entity) {
+      const destX = entity.x + this.dx;
+      const destY = entity.y + this.dy;
+
+      if (engine.gameMap.getBlockingEntityAtLocation(destX, destY)) {
+         return new MeleeAction(this.dx, this.dy).perform(engine, entity);
+      } else {
+         return new MovementAction(this.dx, this.dy).perform(engine, entity);
+      }
+   }
+}
+```
+
+The class <code>BumpAction</code> will replace the <code><MovementAction</code>, that was currently mapped in the
+variable <code>MOVE_KEYS</code>.
+
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

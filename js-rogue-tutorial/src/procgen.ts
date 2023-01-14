@@ -1,7 +1,14 @@
 import { FLOOR_TILE, WALL_TILE, Tile } from "./tile-types";
 import { GameMap } from "./game-map";
 import { Display } from "rot-js";
-import { Player } from "./entity-classes";
+import { Entity, spawnOrc, spawnTroll } from "./entity-classes";
+
+interface Bounds {
+   x1: number;
+   y1: number;
+   x2: number;
+   y2: number;
+}
 
 class RectangularRoom {
    tiles: Tile[][];
@@ -31,6 +38,15 @@ class RectangularRoom {
       return [centerX, centerY];
    }
 
+   public get bounds(): Bounds {
+      return {
+         x1: this.x,
+         y1: this.y,
+         x2: this.x + this.width,
+         y2: this.y + this.height,
+      };
+   }
+
    intersects(other: RectangularRoom): boolean {
       return (
          this.x <= other.x + other.width &&
@@ -47,11 +63,12 @@ export function generateDungeon(
    maxRooms: number,
    minSize: number,
    maxSize: number,
-   player: Player,
+   maxMonsters: number,
+   player: Entity,
    display: Display
 ): GameMap {
    const maxTries: number = 10;
-   const dungeon = new GameMap(mapWidth, mapHeight, display);
+   const dungeon = new GameMap(mapWidth, mapHeight, display, [player]);
 
    // https://www.tutorialspoint.com/typescript/typescript_variables.htm
    // Syntax to declare type of 'rooms' and its value on the same row
@@ -68,6 +85,10 @@ export function generateDungeon(
             continue;
          } else {
             dungeon.addRoom(newRoom.x, newRoom.y, newRoom.tiles);
+
+            // Spawn monsters in the rooms
+            placeEntities(newRoom, dungeon, maxMonsters);
+
             rooms.push(newRoom);
             break;
          }
@@ -79,6 +100,7 @@ export function generateDungeon(
    const startPoint = rooms[startingRoomIndex].center;
    player.x = startPoint[0];
    player.y = startPoint[1];
+
 
    // Connect rooms
    for (let index = 0; index < rooms.length - 1; index++) {
@@ -121,8 +143,9 @@ function* connectRooms(a: RectangularRoom, b: RectangularRoom): Generator<[numbe
    }
 }
 
-function generateRandomNumber(min: number, max: number) {
-   return Math.floor(Math.random() * (max - min) + min);
+function generateRandomNumber(min: number, max: number): number {
+   // Add +1 to include max value in possible values
+   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
 function generateRandomRoom(
@@ -137,4 +160,28 @@ function generateRandomRoom(
    const y = generateRandomNumber(0, mapHeight - height - 1);
 
    return new RectangularRoom(x, y, width, height);
+}
+
+function placeEntities(
+   room: RectangularRoom,
+   dungeon: GameMap,
+   maxMonsters: number,
+) {
+   const numberOfMonstersToAdd = generateRandomNumber(0, maxMonsters);
+
+   for (let i = 0; i < numberOfMonstersToAdd; i++) {
+      const bounds = room.bounds;
+      const x = generateRandomNumber(bounds.x1 + 1, bounds.x2 - 1);
+      const y = generateRandomNumber(bounds.y1 + 1, bounds.y2 - 1);
+
+      // Check if there are any monsters at selected position
+      if (!dungeon.entities.some((e) => e.x == x && e.y == y)) {
+         // Determine if monster should be and Ogre or a Troll
+         if (Math.random() < 0.8) {
+            dungeon.entities.push(spawnOrc(x, y));
+         } else {
+            dungeon.entities.push(spawnTroll(x, y));
+         }
+      }
+   }
 }

@@ -6,7 +6,9 @@ export class Entity {
       public y: number,
       public char: string,
       public fg: string = '#fff',
-      public bg: string = '#000'
+      public bg: string = '#000',
+      public name: string = '<Unnamed>',
+      public blocksMovement: boolean = false,
       ) {}
 
    move(dx: number, dy: number) {
@@ -15,8 +17,14 @@ export class Entity {
     }
 }
 
-export class Player extends Entity {
-   constructor(x: number, y: number) {
-     super(x, y, '@', '#fff', '#c8b432');
-   }
+export function spawnPlayer(x: number, y: number): Entity {
+   return new Entity(x, y, '@', '#fff', '#000', 'Player', true);
+}
+
+export function spawnOrc(x: number, y: number): Entity {
+   return new Entity(x, y, 'o', '#3f7f3f', '#000', 'Orc', true);
+}
+
+export function spawnTroll(x: number, y: number): Entity {
+   return new Entity(x, y, 'T', '#007f00', '#000', 'Troll', true);
 }
