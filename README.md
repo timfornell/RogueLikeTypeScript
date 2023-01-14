@@ -591,6 +591,22 @@ this.entities.forEach((e) => {
 });
 ```
 
+### Ghosts
+Another feature of the enemy entities at the moment is that it is possible to walk directly through them. To fix this,
+a property was added to the <code>Entity</code> class earlier: <code>blocksMovement</code>. Currently, it isn't
+utilized at all. To change this, a method called <code>getBlockingEntityAtLocation</code> is added to the
+<code>GameMap</code> class:
+
+```TypeScript
+// The '|' is used to say that a function/method can return different types. In this case, the find function will
+// either return an Entity object or undefined, if no Entity fulfilling the criteria was found.
+getBlockingEntityAtLocation(x: number, y: number): Entity | undefined {
+   return this.entities.find(
+      (e) => e.blocksMovement && e.x === x && e.y === y,
+   );
+}
+```
+
 
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

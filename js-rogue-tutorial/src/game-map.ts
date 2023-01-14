@@ -98,4 +98,12 @@ export class GameMap {
          }
       });
    }
+
+   // The '|' is used to say that a function/method can return different types. In this case, the find function will
+   // either return an Entity object or undefined, if no Entity fulfilling the criteria was found.
+   getBlockingEntityAtLocation(x: number, y: number): Entity | undefined {
+      return this.entities.find(
+         (e) => e.blocksMovement && e.x === x && e.y === y,
+      );
+   }
 }
