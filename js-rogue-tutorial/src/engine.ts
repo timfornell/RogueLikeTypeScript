@@ -71,10 +71,11 @@ export class Engine {
    }
 
    handleEnemyturns() {
-      this.gameMap.nonPlayerEntities.forEach((e) => {
-         console.log(
-            `The ${e.name} wonders when it will get to take a real turn.`,
-         );
+      this.gameMap.actors.forEach((e) => {
+         if (e.isAlive) {
+            // '?' is used to prevent 'perform' from being executed if ai equals null
+            e.ai?.perform(e);
+         }
       });
    }
 }

@@ -1,7 +1,7 @@
 import * as ROT from 'rot-js';
 import { Display } from 'rot-js';
 import { FLOOR_TILE, Tile } from './tile-types';
-import { Entity } from './entity-classes';
+import { Actor, Entity } from './entity-classes';
 import { WALL_TILE } from './tile-types';
 
 export class GameMap {
@@ -26,8 +26,11 @@ export class GameMap {
       }
    }
 
-   public get nonPlayerEntities(): Entity[] {
-      return this.entities.filter((e) => e.name !== 'Player');
+   public get actors(): Actor[] {
+      return this.entities
+         .filter((e) => e instanceof Actor)
+         .map((e) => e as Actor)
+         .filter((a) => a.isAlive);
    }
 
    render() {

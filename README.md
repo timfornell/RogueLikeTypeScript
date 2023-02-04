@@ -702,5 +702,32 @@ following steps (in the respective order):
 3. If a path to the target exists; perform a movement action
 4. If neither of the conditions above are fulfilled; perform a wait action (no nothing)
 
+Now that there is a class that implements the <ode>BaseAI</code> class, it can be used to make the enemies move. To do
+so, and to maintain a good structure, the <code>Entity</code> class is extended with a class called <code>Actor</code>.
+The code for it is nothing fancy and can be seen below.
+
+```TypeScript
+export class Actor extends Entity {
+   constructor(
+      /* Parameters common with Entity hidden */
+      // Allow null since the player will be an actor but without AI
+      public ai: BaseAI | null,
+      public figher: Fighter,
+   ) {
+      super(x, y, char, fg, bg, name, true);
+      this.figher.entity = this;
+   }
+
+   public get isAlive(): boolean {
+      // Check to determine if object is player or not
+      return !!this.ai ||  window.engine.player == this;
+   }
+}
+```
+
+The last step is to adapt all the existing code to use this <code>Actor</code> class instead of the previous
+<code>Entity</code>. I won't go into the details but it involves updating the spawn functions in *entity-classes.ts* and
+updating the <code>GameMap</code> class to return all non player actors so that the function
+<code>handleEnemyTurns</code> can get access to them to "run" their AI.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

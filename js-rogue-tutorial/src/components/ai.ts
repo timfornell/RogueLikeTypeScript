@@ -29,7 +29,7 @@ export abstract class BaseAI implements Action {
     */
    calculatePathTo(destX: number, destY: number, entity: Entity) {
       // Lambda function to let Djikstra algorithm know if a tile can be walked on
-      const isPassable = (x: number, y: number) => window.engine.gameMap.tiles[x][y].walkable;
+      const isPassable = (x: number, y: number) => window.engine.gameMap.tiles[y][x].walkable;
       const dijkstra = new ROT.Path.Dijkstra(destX, destY, isPassable, {});
 
       this.path = [];
