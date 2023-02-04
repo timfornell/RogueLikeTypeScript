@@ -60,7 +60,7 @@ export class Engine {
       const action = handleInput(event);
 
       if (action) {
-         action.perform(this, this.player);
+         action.perform(this.player);
       }
 
       this.handleEnemyturns();
