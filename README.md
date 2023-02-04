@@ -653,6 +653,54 @@ export class BumpAction extends ActionWithDirection {
 The class <code>BumpAction</code> will replace the <code><MovementAction</code>, that was currently mapped in the
 variable <code>MOVE_KEYS</code>.
 
+## Part 6 - Dealing and taking damage
+The enemies on the map are at the moment not very interesting, considering that they don't really do anything but
+stand still.
+
+### Give chase
+To enable the monster to move around, a design pattern called *composite pattern* will be used. An in depth explanation
+to what it is can be found here: [Composite Pattern](https://refactoring.guru/design-patterns/composite). But the gist
+of this pattern is to compose objects into tree structure to make it possible to work with these structures as if they
+are individual objets. In our code, this will be implemented in a directory called *components*. For now, the folder
+contains three files:
+
+1. base-components.ts
+2. figher.ts
+3. ai.ts
+
+The first file contains an interface definition called <code>BaseComponent</code>. The second file contains a class
+called <code>Figher</code> that implements the beforementioned interface. This class will be used to keep track of the
+hp of entities, alongside with other attributes. The third file contains an abstract class <code>BaseAI</code>, which
+at the moment contains a function <code>calculatePathTo</code> that find the shortest path between two points using
+Djikstras algorithm. The function can be seen below.
+
+```TypeScript
+calculatePathTo(destX: number, destY: number, entity: Entity) {
+   // Lambda function to let Djikstra algorithm know if a tile can be walked on
+   const isPassable = (x: number, y: number) => window.engine.gameMap.tiles[x][y].walkable;
+   const dijkstra = new ROT.Path.Dijkstra(destX, destY, isPassable, {});
+
+   this.path = [];
+
+   // Provide callback function that saves each calculated path in 'this.path'
+   dijkstra.compute(entity.x, entity.y, (x: number, y: number) => {
+      this.path.push([x, y]);
+   });
+
+   // Since the starting point is included in the path, remove it from the array
+   this.path.shift();
+}
+```
+
+Since this is an abstract class it won't change the behaviour of the monsters on itself. To do so, a new class is
+created, <code>HostileAI</code>. This class extends the BaseAI class and contains a function <code>perform</code> which
+can be considered the "brain" of the AI. It selects a target (at the moment it is always the player) and attempts the
+following steps (in the respective order):
+
+1. If player is visible and within one square; perform melee action
+2. If player is visible but not within one square; calculate the closest path
+3. If a path to the target exists; perform a movement action
+4. If neither of the conditions above are fulfilled; perform a wait action (no nothing)
 
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon

@@ -52,6 +52,10 @@ export class BumpAction extends ActionWithDirection {
    }
 }
 
+export class WaitAction implements Action {
+   perform(_entity: Entity) {}
+}
+
 interface MovementMap {
    // This means that MovementMap will contain an array of undetermined size where the keys are strings and the values
    //  are of type Action.
