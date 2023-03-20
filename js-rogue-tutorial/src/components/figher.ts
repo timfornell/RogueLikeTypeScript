@@ -1,5 +1,5 @@
 import { BaseComponent } from "./base-component";
-import { Actor } from "../entity-classes";
+import { Actor, RenderOrder } from "../entity-classes";
 
 export class Fighter implements BaseComponent {
    entity: Actor | null;
@@ -41,6 +41,7 @@ export class Fighter implements BaseComponent {
       this.entity.blocksMovement = false;
       this.entity.ai = null;
       this.entity.name = `Remains of ${this.entity.name}`;
+      this.entity.renderOrder = RenderOrder.Corpse;
 
       console.log(deathMessage);
    }

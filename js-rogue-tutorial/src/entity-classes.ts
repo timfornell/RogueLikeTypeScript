@@ -1,6 +1,12 @@
 import { BaseAI, HostileEnemy } from "./components/ai";
 import { Fighter } from "./components/figher";
 
+export enum RenderOrder {
+   Corpse,
+   Item,
+   Actor
+}
+
 // Make it possible to import 'Entity' in other files
 export class Entity {
    constructor(
@@ -11,6 +17,7 @@ export class Entity {
       public bg: string = '#000',
       public name: string = '<Unnamed>',
       public blocksMovement: boolean = false,
+      public renderOrder: RenderOrder = RenderOrder.Corpse,
       ) {}
 
    move(dx: number, dy: number) {
@@ -31,7 +38,7 @@ export class Actor extends Entity {
       public ai: BaseAI | null,
       public fighter: Fighter,
    ) {
-      super(x, y, char, fg, bg, name, true);
+      super(x, y, char, fg, bg, name, true, RenderOrder.Actor);
       this.fighter.entity = this;
    }
 

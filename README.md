@@ -738,5 +738,34 @@ The <code>MeleeAction</code> is updated to find the target at the desired direct
 damage a hit would do when taking defense into account. The methid <code>die</code> is, unsurprisingly, called if an
 actor dies. When an actor dies, a message is printed in the console and the visual representation on the map changes.
 
+### Drawing priority
+A dead actor logically doesn't float to the roof of a room, if gravity works as it should. This means, since this is a
+top down game, a dead actor shouldn't be drawn on top of an actor that is less dead. Which is the case currently. To
+remedy this, a rendering order is defined in *entity-classes.ts* according to:
+
+```TypeScript
+export enum RenderOrder {
+   Corpse,
+   Item,
+   Actor
+}
+```
+
+The class <code>Entity</code> is then extended with a new property of this type which defaults to *Corpse*.
+This means that the class <code>Actor</code> inherints this property and can modify it to *Actor* instead. This is then
+"downgraded" in the function <code>die</code>, from the previous section, to *Corpes* if the target dies. Lastly, to
+make use of the rendering order, the <code>render</code> method, where objects are drawn on the map, is modified:
+
+```
+const sortedEntities = this.entities.slice().sort((a, b) => a.renderOrder - b.renderOrder);
+
+sortedEntities.forEach((e) => {
+   if (this.tiles[e.y][e.x].visible) {
+      this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+   }
+});
+```
+
+This would make it iterate over the entities using the rendering order.
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
