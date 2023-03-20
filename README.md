@@ -653,6 +653,140 @@ export class BumpAction extends ActionWithDirection {
 The class <code>BumpAction</code> will replace the <code><MovementAction</code>, that was currently mapped in the
 variable <code>MOVE_KEYS</code>.
 
+## Part 6 - Dealing and taking damage
+The enemies on the map are at the moment not very interesting, considering that they don't really do anything but
+stand still.
+
+### Give chase
+To enable the monster to move around, a design pattern called *composite pattern* will be used. An in depth explanation
+to what it is can be found here: [Composite Pattern](https://refactoring.guru/design-patterns/composite). But the gist
+of this pattern is to compose objects into tree structure to make it possible to work with these structures as if they
+are individual objets. In our code, this will be implemented in a directory called *components*. For now, the folder
+contains three files:
+
+1. base-components.ts
+2. figher.ts
+3. ai.ts
+
+The first file contains an interface definition called <code>BaseComponent</code>. The second file contains a class
+called <code>Figher</code> that implements the beforementioned interface. This class will be used to keep track of the
+hp of entities, alongside with other attributes. The third file contains an abstract class <code>BaseAI</code>, which
+at the moment contains a function <code>calculatePathTo</code> that find the shortest path between two points using
+Djikstras algorithm. The function can be seen below.
+
+```TypeScript
+calculatePathTo(destX: number, destY: number, entity: Entity) {
+   // Lambda function to let Djikstra algorithm know if a tile can be walked on
+   const isPassable = (x: number, y: number) => window.engine.gameMap.tiles[x][y].walkable;
+   const dijkstra = new ROT.Path.Dijkstra(destX, destY, isPassable, {});
+
+   this.path = [];
+
+   // Provide callback function that saves each calculated path in 'this.path'
+   dijkstra.compute(entity.x, entity.y, (x: number, y: number) => {
+      this.path.push([x, y]);
+   });
+
+   // Since the starting point is included in the path, remove it from the array
+   this.path.shift();
+}
+```
+
+Since this is an abstract class it won't change the behaviour of the monsters on itself. To do so, a new class is
+created, <code>HostileAI</code>. This class extends the BaseAI class and contains a function <code>perform</code> which
+can be considered the "brain" of the AI. It selects a target (at the moment it is always the player) and attempts the
+following steps (in the respective order):
+
+1. If player is visible and within one square; perform melee action
+2. If player is visible but not within one square; calculate the closest path
+3. If a path to the target exists; perform a movement action
+4. If neither of the conditions above are fulfilled; perform a wait action (no nothing)
+
+Now that there is a class that implements the <ode>BaseAI</code> class, it can be used to make the enemies move. To do
+so, and to maintain a good structure, the <code>Entity</code> class is extended with a class called <code>Actor</code>.
+The code for it is nothing fancy and can be seen below.
+
+```TypeScript
+export class Actor extends Entity {
+   constructor(
+      /* Parameters common with Entity hidden */
+      // Allow null since the player will be an actor but without AI
+      public ai: BaseAI | null,
+      public figher: Fighter,
+   ) {
+      super(x, y, char, fg, bg, name, true);
+      this.figher.entity = this;
+   }
+
+   public get isAlive(): boolean {
+      // Check to determine if object is player or not
+      return !!this.ai ||  window.engine.player == this;
+   }
+}
+```
+
+The last step is to adapt all the existing code to use this <code>Actor</code> class instead of the previous
+<code>Entity</code>. I won't go into the details but it involves updating the spawn functions in *entity-classes.ts* and
+updating the <code>GameMap</code> class to return all non player actors so that the function
+<code>handleEnemyTurns</code> can get access to them to "run" their AI.
+
+### Dishing out punches
+To make the hostile mobs capable of conflicting (and taking) damage, some refactoring is needed. I won't describe these
+in detail since they aren't that interesting. But the two more imporant changes are to update the method
+<code>MeleeAction</code> and to implement a method called <code>die</code> in the <code>fighter</code> class.
+The <code>MeleeAction</code> is updated to find the target at the desired direction and then calculate the resulting
+damage a hit would do when taking defense into account. The methid <code>die</code> is, unsurprisingly, called if an
+actor dies. When an actor dies, a message is printed in the console and the visual representation on the map changes.
+
+### Drawing priority
+A dead actor logically doesn't float to the roof of a room, if gravity works as it should. This means, since this is a
+top down game, a dead actor shouldn't be drawn on top of an actor that is less dead. Which is the case currently. To
+remedy this, a rendering order is defined in *entity-classes.ts* according to:
+
+```TypeScript
+export enum RenderOrder {
+   Corpse,
+   Item,
+   Actor
+}
+```
+
+The class <code>Entity</code> is then extended with a new property of this type which defaults to *Corpse*.
+This means that the class <code>Actor</code> inherints this property and can modify it to *Actor* instead. This is then
+"downgraded" in the function <code>die</code>, from the previous section, to *Corpes* if the target dies. Lastly, to
+make use of the rendering order, the <code>render</code> method, where objects are drawn on the map, is modified:
+
+```
+const sortedEntities = this.entities.slice().sort((a, b) => a.renderOrder - b.renderOrder);
+
+sortedEntities.forEach((e) => {
+   if (this.tiles[e.y][e.x].visible) {
+      this.display.draw(e.x, e.y, e.char, e.fg, e.bg);
+   }
+});
+```
+
+This would make it iterate over the entities using the rendering order.
+
+### Zombies
+Another issue that needs to be resolved before wrapping chapter 6 up is the issue with the player being able to move
+around after death. Fixing this is simple and is done by updating the <code>update</code> method in *engine.ts* to check
+if the player is alive before allowing any actors to move. If the player is dead, nothing moves.
+
+While whe're at it, we might as well ad the first piece of UI to the game. More specifically, how much life the player
+has left. This information is added by modifying the <code>render</code> method in *engine.ts* like this:
+
+```
+render() {
+   this.gameMap.render();
+
+   this.display.drawText(
+      1,
+      47,
+      `HP: %c{red}%b{white}${this.player.fighter.hp}/%c{green}%b{white}${this.player.fighter.maxHp}`,
+   );
+}
+```
 
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
