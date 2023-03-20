@@ -1,6 +1,6 @@
 import * as ROT from 'rot-js';
 import { handleInput } from './input-handler';
-import { Entity } from './entity-classes';
+import { Actor } from './entity-classes';
 import { GameMap } from './game-map';
 import { generateDungeon } from './procgen';
 
@@ -15,9 +15,9 @@ export class Engine {
    gameMap: GameMap;
    display: ROT.Display;
 
-   player: Entity;
+   player: Actor;
 
-   constructor(player: Entity) {
+   constructor(player: Actor) {
       this.display = new ROT.Display({
          width: Engine.MAP_WIDTH,
          height: Engine.MAP_HEIGHT,
@@ -50,20 +50,27 @@ export class Engine {
 
    render() {
       this.gameMap.render();
+      this.display.drawText(
+         1,
+         47,
+         `HP: %c{red}%b{white}${this.player.fighter.hp}/%c{green}%b{white}${this.player.fighter.maxHp}`,
+      );
    }
 
    update(event: KeyboardEvent) {
       // Clear screen
       this.display.clear();
 
-      // Check if key event is a valid action
-      const action = handleInput(event);
+      if (this.player.fighter.hp > 0) {
+         // Check if key event is a valid action
+         const action = handleInput(event);
 
-      if (action) {
-         action.perform(this.player);
+         if (action) {
+            action.perform(this.player);
+         }
+
+         this.handleEnemyturns();
       }
-
-      this.handleEnemyturns();
 
       // Update canvas
       this.gameMap.updateFov(this.player);

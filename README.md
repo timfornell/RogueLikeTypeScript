@@ -767,5 +767,26 @@ sortedEntities.forEach((e) => {
 ```
 
 This would make it iterate over the entities using the rendering order.
+
+### Zombies
+Another issue that needs to be resolved before wrapping chapter 6 up is the issue with the player being able to move
+around after death. Fixing this is simple and is done by updating the <code>update</code> method in *engine.ts* to check
+if the player is alive before allowing any actors to move. If the player is dead, nothing moves.
+
+While whe're at it, we might as well ad the first piece of UI to the game. More specifically, how much life the player
+has left. This information is added by modifying the <code>render</code> method in *engine.ts* like this:
+
+```
+render() {
+   this.gameMap.render();
+
+   this.display.drawText(
+      1,
+      47,
+      `HP: %c{red}%b{white}${this.player.fighter.hp}/%c{green}%b{white}${this.player.fighter.maxHp}`,
+   );
+}
+```
+
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
