@@ -29,10 +29,10 @@ export class Actor extends Entity {
       public name: string = '<Unnamed>',
       // Allow null since the player will be an actor but without AI
       public ai: BaseAI | null,
-      public figher: Fighter,
+      public fighter: Fighter,
    ) {
       super(x, y, char, fg, bg, name, true);
-      this.figher.entity = this;
+      this.fighter.entity = this;
    }
 
    public get isAlive(): boolean {

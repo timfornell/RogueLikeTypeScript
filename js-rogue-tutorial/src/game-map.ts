@@ -113,4 +113,8 @@ export class GameMap {
          (e) => e.blocksMovement && e.x === x && e.y === y,
       );
    }
+
+   getActorAtLocation(x: number, y: number): Actor | undefined {
+      return this.actors.find((a) => a.x === x && a.y === y);
+   }
 }

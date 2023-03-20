@@ -7,7 +7,7 @@ import {
    WaitAction,
 } from '../input-handler';
 
-import { Entity } from '../entity-classes';
+import { Actor, Entity } from '../entity-classes';
 
 export abstract class BaseAI implements Action {
    path: [number, number][];
@@ -19,7 +19,7 @@ export abstract class BaseAI implements Action {
    perform(_entity: Entity) {}
 
    /**
-    * Copmute and return a path to the target position.
+    * Compute and return a path to the target position.
     *
     * If there is no valid path then return an empty list.
     *
@@ -57,7 +57,7 @@ export class HostileEnemy extends BaseAI {
 
       if (window.engine.gameMap.tiles[entity.y][entity.x].visible) {
          if (distance <= 1) {
-            return new MeleeAction(dx, dy).perform(entity);
+            return new MeleeAction(dx, dy).perform(entity as Actor);
          }
 
          this.calculatePathTo(target.x, target.y, entity);

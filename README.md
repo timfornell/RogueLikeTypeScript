@@ -731,7 +731,12 @@ updating the <code>GameMap</code> class to return all non player actors so that 
 <code>handleEnemyTurns</code> can get access to them to "run" their AI.
 
 ### Dishing out punches
-
+To make the hostile mobs capable of conflicting (and taking) damage, some refactoring is needed. I won't describe these
+in detail since they aren't that interesting. But the two more imporant changes are to update the method
+<code>MeleeAction</code> and to implement a method called <code>die</code> in the <code>fighter</code> class.
+The <code>MeleeAction</code> is updated to find the target at the desired direction and then calculate the resulting
+damage a hit would do when taking defense into account. The methid <code>die</code> is, unsurprisingly, called if an
+actor dies. When an actor dies, a message is printed in the console and the visual representation on the map changes.
 
 ## Graphical assets
 https://kenney.nl/assets/tiny-dungeon
